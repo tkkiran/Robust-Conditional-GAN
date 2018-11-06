@@ -1,3 +1,3 @@
-# GAN_Lib_Tensorflow
+# CIFAR-10
 
-Code adpated from https://github.com/watsonyanghx/GAN_Lib_Tensorflow
+Code adapted from https://github.com/watsonyanghx/GAN_Lib_Tensorflow.

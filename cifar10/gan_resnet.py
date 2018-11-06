@@ -422,7 +422,7 @@ def Discriminator_projection(labels, update_collection=None, reuse=False):
 
 
 def generated_label_accuracy(samples, labels, confusion_matrix=None):
-    with tf.gfile.GFile('../wenxinxu_resnet-in-tensorflow/resnet-110/graph_optimized.pb', 'rb') as f:
+    with tf.gfile.GFile('./resnet-110/graph_optimized.pb', 'rb') as f:
       graph_def_optimized = tf.GraphDef()
       graph_def_optimized.ParseFromString(f.read())
 
