@@ -1,0 +1,14 @@
+# Created by https://www.gitignore.io/api/python
+# Byte-compiled / optimized / DLL files
+ __pycache__/
+*.pyo
+*.pyc
+
+# Created by https://www.gitignore.io/api/dropbox
+### Dropbox ###
+# Dropbox settings and caches
+.dropbox
+.dropbox.attr
+.dropbox.cache
+
+# End of https://www.gitignore.io/api/dropbox
