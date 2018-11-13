@@ -1,7 +1,7 @@
 # Robust Conditional GAN - RCGAN (Train cGAN using noisy labels)
 
 This repo gives a brief introduction and the code to reproduce the experiments of our paper: 
-*Kiran Koshy Thekumparampil, Ashish Khetan, Zinan Lin, and Sewoong Oh. Robustness of conditional GANs to noisy labels, NIPS 2018*.
+[*Kiran Koshy Thekumparampil, Ashish Khetan, Zinan Lin, and Sewoong Oh. Robustness of conditional GANs to noisy labels, NIPS 2018*](https://arxiv.org/abs/1811.03205).
 
 A variant of GAN that is popular in many practical applications is the [**conditional GAN (cGAN)**](https://arxiv.org/abs/1411.1784), where the input examples are labelled and the goal is to generate realistic examples conditioned on the label chosen by the end-user. That is, given a set of samples **{(x<sub>i</sub>, y<sub>i</sub>)}** from distribution **P(X,Y)**, cGAN should learn to sample from the conditional distributions **P(X|Y=y)**, for any **y**.
 
