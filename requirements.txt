@@ -1,0 +1,4 @@
+Pillow
+imageio
+matplotlib
+scipy
