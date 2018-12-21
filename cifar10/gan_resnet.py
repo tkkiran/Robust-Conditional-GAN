@@ -44,6 +44,7 @@ flags.DEFINE_string("run", '0', "run name")
 flags.DEFINE_string("log_file", None, "logging file")
 flags.DEFINE_string("parent_dir", '.', "parent directory for checkpoints")
 flags.DEFINE_string("expt_dir", None, "directory for expts")
+flags.DEFINE_string("data_dir", DATA_DIR, "data directory")
 
 flags.DEFINE_integer("inception_freq", 2500, "frequncy of inception score calculation")
 flags.DEFINE_integer("sample_freq", 2500, "frequncy of dev cost calc. and sample pics")
@@ -54,7 +55,7 @@ flags.DEFINE_integer("batch_size", 64, "batch size")
 flags.DEFINE_integer("niters", 50000, "no. of batches")
 flags.DEFINE_float("lr", 2.0e-4, "learning rate")
 flags.DEFINE_integer("ngpus", 2, "no. of gpus")
-flags.DEFINE_boolean("multi_gpu_multi_batch", True, 
+flags.DEFINE_boolean("multi_gpu_multi_batch", True,
                      'whether to multiply batch_size with number of gpus'
                      'and divide nof. iterations by nof. gpus')
 
@@ -81,10 +82,10 @@ FLAGS = flags.FLAGS
 if FLAGS.log_file is None:
     raise ValueError('flag log_file is required')
 
-# dataset = str(sys.argv[1]) 
+# dataset = str(sys.argv[1])
 # ALGORITHM = str(sys.argv[2])
 # ALPHA = float(sys.argv[3])
-# run = str(sys.argv[4]) 
+# run = str(sys.argv[4])
 # log_file = str(sys.argv[5])
 
 dataset = FLAGS.dataset
@@ -107,7 +108,7 @@ C_ALPHA = ((1-ALPHA)/9.0)*np.ones((10,10)) + (ALPHA - (1-ALPHA)/9.0)*np.eye((10)
 
 if dataset == "cifar":
     import common.data.cifar10 as dataset_
-    OUTPUT_DIM = 3072  # Number of pixels in CIFAR10 (32*32*3)    
+    OUTPUT_DIM = 3072  # Number of pixels in CIFAR10 (32*32*3)
     IMG_SIZE = 32
     IMG_DIM = 3
     INCEPTION_FREQUENCY = 5000 # 1000  # How frequently to calculate Inception score
@@ -117,13 +118,13 @@ if dataset == "cifar":
     DIR = os.path.join(FLAGS.parent_dir, ALGORITHM + '_alpha' + str(ALPHA)+ '_run-' +  run + '_' + datetime.now().strftime("%Y%m%d-%H%M%S"))
 if dataset == "mnist":
     import common.data.mnist10 as dataset_
-    OUTPUT_DIM = 1024  # Number of pixels in CIFAR10 (32*32*3)    
+    OUTPUT_DIM = 1024  # Number of pixels in CIFAR10 (32*32*3)
     IMG_SIZE = 32
     IMG_DIM = 1
     INCEPTION_FREQUENCY = 10000000  # How frequently to calculate Inception score
     SAMPLE_FREQUENCY = 50
     SAMPLE_SAVE_FREQUENCY = 1000
-    DIR = './run_mnist_' + ALGORITHM + '_' + str(ALPHA) + '_' +  run    
+    DIR = './run_mnist_' + ALGORITHM + '_' + str(ALPHA) + '_' +  run
 
 if FLAGS.expt_dir is not None:
     DIR = '{}/{}'.format(FLAGS.parent_dir, FLAGS.expt_dir)
@@ -135,8 +136,8 @@ GENERATED_LABEL_ACCURACY_FREQ = FLAGS.generated_label_accuracy_freq
 
 if not os.path.exists(DIR):
     os.mkdir(DIR)
-DIR = DIR + '/'  
-    
+DIR = DIR + '/'
+
 BATCH_SIZE = 64  # Critic batch size
 GEN_BS_MULTIPLE = 2  # Generator batch size, as a multiple of BATCH_SIZE
 
@@ -148,7 +149,7 @@ ITERS = 50000  # How many iterations to train for
 BATCH_SIZE = FLAGS.batch_size
 ITERS = FLAGS.niters
 
-Z_DIM = 128 # dimension of the noise input to generator 
+Z_DIM = 128 # dimension of the noise input to generator
 DIM_G = 128  # Generator dimensionality
 DIM_D = 128  # Critic dimensionality
 NORMALIZATION_G = True  # Use batchnorm in generator?
@@ -410,7 +411,7 @@ def Discriminator(inputs, labels, update_collection=None, reuse=False):
                                             update_collection=update_collection)
         output_wgan = tf.reshape(output_wgan, [-1])
         return output, output_wgan
-            
+
 def Discriminator_projection(labels, update_collection=None, reuse=False):
     with tf.variable_scope("Discriminator", reuse=reuse):
         embedding_y = lib.ops.embedding.embed_y(labels, VOCAB_SIZE, EMBEDDING_DIM, word2vec_file=WORD2VEC_FILE)
@@ -418,7 +419,7 @@ def Discriminator_projection(labels, update_collection=None, reuse=False):
                                             spectral_normed=True,
                                             update_collection=update_collection,
                                             biases=True)  # (N, DIM_D)
-        return embedding_y   
+        return embedding_y
 
 
 def generated_label_accuracy(samples, labels, confusion_matrix=None):
@@ -437,7 +438,7 @@ def generated_label_accuracy(samples, labels, confusion_matrix=None):
         labels[np.arange(labels.shape[0]), _labels] = 1
         labels[:] = labels.dot(confusion_matrix)
         labels = np.argmax(labels, axis=-1)
-        
+
     G = tf.Graph()
     with G.as_default():
       gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.5)
@@ -460,7 +461,7 @@ def perm_classifier(x, reuse=False):
         with tf.variable_scope("Discriminator", reuse=reuse):
             # 1 layer NN
             hidden_layer = lib.ops.linear.Linear(
-                tf.reshape(x, [-1, OUTPUT_DIM]), 
+                tf.reshape(x, [-1, OUTPUT_DIM]),
                 OUTPUT_DIM, VOCAB_SIZE, 'D.d_perm_classifier_h1',
                 spectral_normed=True, biases=True, reuse=reuse)
             logits = hidden_layer
@@ -468,11 +469,11 @@ def perm_classifier(x, reuse=False):
         with tf.variable_scope("Discriminator", reuse=reuse):
             # 1 layer NN
             hidden_layer = lib.ops.linear.Linear(
-                tf.reshape(x, [-1, OUTPUT_DIM]), 
+                tf.reshape(x, [-1, OUTPUT_DIM]),
                 OUTPUT_DIM, 128, 'D.d_perm_classifier_h1',
                 spectral_normed=True, biases=True, reuse=reuse)
             hidden_layer = lib.ops.linear.Linear(
-                hidden_layer, 
+                hidden_layer,
                 128, VOCAB_SIZE, 'D.d_perm_classifier_h2',
                 spectral_normed=True, biases=True, reuse=reuse)
 
@@ -508,14 +509,14 @@ def main(_):
                 aa = np.log(VOCAB_SIZE*FLAGS.confuse_init_diag/
                             (1.-FLAGS.confuse_init_diag))
             aa = min(7.0, aa)
-            
+
             mean = 0.0 # 0.2/VOCAB_SIZE
             confuse_init = (0 - aa/VOCAB_SIZE + mean)*np.ones(
                 [VOCAB_SIZE, VOCAB_SIZE], dtype=np.float32)
             np.fill_diagonal(confuse_init, (aa - (aa/VOCAB_SIZE) + mean))
 
             confusion_logits = tf.get_variable(
-                'confusion_logits', dtype=tf.float32, 
+                'confusion_logits', dtype=tf.float32,
                 initializer=tf.constant_initializer(confuse_init),
                 shape=[VOCAB_SIZE, VOCAB_SIZE], trainable=True)
 
@@ -536,7 +537,7 @@ def main(_):
 
         all_labels_inv_weights = tf.placeholder(tf.float32, shape=[BATCH_SIZE,VOCAB_SIZE])
         labels_inv_weights_splits = tf.split(all_labels_inv_weights, len(DEVICES), axis=0)
-            
+
         fake_data_splits = []
         for i, device in enumerate(DEVICES):
             with tf.device(device):
@@ -569,13 +570,13 @@ def main(_):
                         labels_splits[i],
                         labels_random_splits[i],
                     ], axis=0)
-                elif ALGORITHM == "rcgan-u": 
+                elif ALGORITHM == "rcgan-u":
                     real_and_fake_labels = labels_splits[i]
-                elif ALGORITHM == "rcgan": 
+                elif ALGORITHM == "rcgan":
                     real_and_fake_labels = tf.concat(values=[
                         labels_splits[i],
                         labels_biased_splits[i],
-                    ], axis=0)                 
+                    ], axis=0)
                 if i == 0:
                     reuse = False
                 else:
@@ -584,8 +585,8 @@ def main(_):
                 output, output_wgan  = Discriminator(real_and_fake_data, real_and_fake_labels, update_collection=None, reuse=reuse)
                 embedding_y  = Discriminator_projection(real_and_fake_labels, update_collection=None, reuse=reuse)
 
-                if ALGORITHM == "biased" or ALGORITHM == "rcgan":                    
-                    disc_all = output_wgan + tf.reshape(tf.reduce_sum(output*embedding_y, axis=1), [-1])    
+                if ALGORITHM == "biased" or ALGORITHM == "rcgan":
+                    disc_all = output_wgan + tf.reshape(tf.reduce_sum(output*embedding_y, axis=1), [-1])
                     disc_real = disc_all[:int(BATCH_SIZE / len(DEVICES))]
                     disc_fake = disc_all[int(BATCH_SIZE / len(DEVICES)):]
                     if LOSS_TYPE == 'Goodfellow':
@@ -609,14 +610,14 @@ def main(_):
                             disc_costs.append(
                                 tf.reduce_mean(tf.nn.softplus(disc_fake)) + tf.reduce_mean(tf.nn.softplus(-disc_real)))
                         else:
-                            disc_costs.append(tf.reduce_mean(disc_fake) - tf.reduce_mean(disc_real))                
+                            disc_costs.append(tf.reduce_mean(disc_fake) - tf.reduce_mean(disc_real))
                 elif ALGORITHM == "unbiased":
                     disc_real_l_y = [j for j in range(VOCAB_SIZE)]
                     for j in range(VOCAB_SIZE):
                         real_and_fake_labels = tf.concat(values=[
                             tf.convert_to_tensor(j*np.ones((int(BATCH_SIZE / len(DEVICES)),)),tf.int32),
-                            labels_random_splits[i],                     
-                        ], axis=0)                     
+                            labels_random_splits[i],
+                        ], axis=0)
                         embedding_y = Discriminator_projection(real_and_fake_labels, update_collection=None, reuse = True)
                         disc_all = output_wgan + tf.reshape(tf.reduce_sum(output*embedding_y, axis=1), [-1])
                         disc_real = disc_all[:int(BATCH_SIZE / len(DEVICES))]
@@ -624,11 +625,11 @@ def main(_):
                         if LOSS_TYPE == 'Goodfellow':
                             if SOFT_PLUS:
                                 disc_real_l_y[j] = -tf.reshape(tf.nn.softplus(tf.log(tf.nn.sigmoid(disc_real)))
-                                                               ,[int(BATCH_SIZE / len(DEVICES)),1]) 
+                                                               ,[int(BATCH_SIZE / len(DEVICES)),1])
                                 disc_fake_l = -tf.reduce_mean(tf.nn.softplus(tf.log(1 - tf.nn.sigmoid(disc_fake))))
                             else:
                                 disc_real_l_y[j] = -tf.reshape(tf.log(tf.nn.sigmoid(disc_real)),[int(BATCH_SIZE / len(DEVICES)),1])
-                                disc_fake_l = -tf.reduce_mean(tf.log(1 - tf.nn.sigmoid(disc_fake)))                        
+                                disc_fake_l = -tf.reduce_mean(tf.log(1 - tf.nn.sigmoid(disc_fake)))
                         elif LOSS_TYPE == 'HINGE':
                             if SOFT_PLUS:
                                 disc_real_l_y[j] = tf.reshape(tf.nn.softplus(-tf.minimum(0., -1 + disc_real))
@@ -644,7 +645,7 @@ def main(_):
                             else:
                                 disc_real_l_y[j] = -disc_real
                                 disc_fake_l = tf.reduce_mean(disc_fake)
-                    abc = tf.reduce_mean(tf.reduce_sum(tf.concat(disc_real_l_y,1)*labels_inv_weights_splits[i], axis = 1))    
+                    abc = tf.reduce_mean(tf.reduce_sum(tf.concat(disc_real_l_y,1)*labels_inv_weights_splits[i], axis = 1))
                     disc_costs.append(abc + disc_fake_l)
                 elif ALGORITHM == "rcgan-u":
                     disc_real = output_wgan + tf.reshape(tf.reduce_sum(output*embedding_y, axis=1), [-1])
@@ -655,7 +656,7 @@ def main(_):
                     embedding_y = Discriminator_projection(fake_labels, update_collection=None, reuse = True)
 
                     disc_fake = (
-                        tf.expand_dims(output_wgan, 1) + 
+                        tf.expand_dims(output_wgan, 1) +
                         tf.reduce_sum(tf.expand_dims(output, 1)*
                                       tf.expand_dims(embedding_y, 0), axis=-1))
                     if LOSS_TYPE == 'Goodfellow':
@@ -681,9 +682,9 @@ def main(_):
                             disc_real_l = tf.reduce_mean(-disc_real)
                     y_fake_confuse = tf.tensordot(
                         tf.one_hot(labels_random_splits[i], VOCAB_SIZE), confusion_matrix, axes=[[1], [0]])
-                    abc = tf.reduce_mean(tf.reduce_sum(disc_fake_y*y_fake_confuse, axis = 1))    
+                    abc = tf.reduce_mean(tf.reduce_sum(disc_fake_y*y_fake_confuse, axis = 1))
                     disc_costs.append(abc + disc_real_l)
-                
+
                 if FLAGS.perm_classifier:
                     if i==0:
                         reuse = False
@@ -711,7 +712,7 @@ def main(_):
         all_labels_biased_G = tf.placeholder(tf.int32, shape=[BATCH_SIZE*GEN_BS_MULTIPLE], name = 'g2')
         labels_biased_splits_G = tf.split(all_labels_biased_G, len(DEVICES), axis=0)
 
-           
+
         gen_costs = []
         for i, device in enumerate(DEVICES):
             with tf.device(device):
@@ -721,21 +722,21 @@ def main(_):
                     output, output_wgan = Discriminator(fake_data_split_G,
                                                         labels_random_splits_G[i],
                                                         update_collection="NO_OPS",
-                                                        reuse=True)                                             
+                                                        reuse=True)
                     embedding_y  = Discriminator_projection(labels_random_splits_G[i], update_collection=None, reuse=True)
                 if ALGORITHM in ["rcgan", "rcgan-u"]:
                     output, output_wgan = Discriminator(fake_data_split_G,
                                                         labels_biased_splits_G[i],
                                                         update_collection="NO_OPS",
-                                                        reuse=True)                                                             
-                    embedding_y  = Discriminator_projection(labels_biased_splits_G[i], update_collection=None, reuse=True)               
+                                                        reuse=True)
+                    embedding_y  = Discriminator_projection(labels_biased_splits_G[i], update_collection=None, reuse=True)
 
 
                 if ALGORITHM == "rcgan-u":
                     fake_labels = tf.convert_to_tensor(np.arange(VOCAB_SIZE), tf.int32)
                     embedding_y = Discriminator_projection(fake_labels, update_collection=None, reuse = True)
                     disc_fake = (
-                        tf.expand_dims(output_wgan, 1) + 
+                        tf.expand_dims(output_wgan, 1) +
                         tf.reduce_sum(tf.expand_dims(output, 1)*
                                       tf.expand_dims(embedding_y, 0), axis=-1))
 
@@ -756,11 +757,11 @@ def main(_):
                             disc_fake_y = -disc_fake
                     y_fake_confuse = tf.tensordot(
                       tf.one_hot(labels_random_splits_G[i], VOCAB_SIZE), confusion_matrix, axes=[[1], [0]])
-                    abc = tf.reduce_mean(tf.reduce_sum(disc_fake_y*y_fake_confuse, axis = 1))    
+                    abc = tf.reduce_mean(tf.reduce_sum(disc_fake_y*y_fake_confuse, axis = 1))
                     gen_costs.append(abc)
 
                 else:
-                    disc_fake =  output_wgan + tf.reshape(tf.reduce_sum(output*embedding_y, axis=1), [-1])   
+                    disc_fake =  output_wgan + tf.reshape(tf.reduce_sum(output*embedding_y, axis=1), [-1])
                     if LOSS_TYPE == 'Goodfellow':
                         if SOFT_PLUS:
                             gen_costs.append(tf.reduce_mean(tf.nn.softplus(-tf.log(tf.nn.sigmoid(disc_fake)))))
@@ -790,7 +791,7 @@ def main(_):
         for var in gen_params:
             logging.debug(var.name)
 
-        disc_params = [var for var in tf.trainable_variables() if 'Discriminator' in var.name]        
+        disc_params = [var for var in tf.trainable_variables() if 'Discriminator' in var.name]
         logging.debug('\ndisc_params:')
         for var in disc_params:
             logging.debug(var.name)
@@ -859,19 +860,19 @@ def main(_):
             # all_samples = all_samples.reshape((-1, 3, 32, 32)).transpose(0, 2, 3, 1)
             all_samples = all_samples.reshape((-1, IMG_SIZE, IMG_SIZE, IMG_DIM))
             return all_samples, all_labels
-            
+
         # Function for reading data
-        train_gen, dev_gen = dataset_.load(BATCH_SIZE, DATA_DIR, C_ALPHA)
+        train_gen, dev_gen = dataset_.load(BATCH_SIZE, FLAGS.data_dir, C_ALPHA)
         def inf_train_gen():
             while True:
                 for images_, labels_, labels_random_, labels_biased_, labels_inv_weights_ in train_gen():
                     yield images_, labels_, labels_random_, labels_biased_, labels_inv_weights_
-        def inf_train_gen_G():          
+        def inf_train_gen_G():
             _generator = train_gen()
             while True:
                 labels_random_list = []
                 labels_biased_list = []
-                for _ in range(GEN_BS_MULTIPLE):                                                      
+                for _ in range(GEN_BS_MULTIPLE):
                     try:
                         _, _, labels_random_list_element, labels_biased_list_element, _ = _generator.__next__()
                     except StopIteration:
@@ -912,7 +913,7 @@ def main(_):
             if ckpt:
                 logging.info('restore model from: {}...'.format(ckpt))
                 saver.restore(session, ckpt)
-                
+
         _random_labels_G, _labels_biased_G = next(gen_G)
         inception_score_max = 0.0
         gen_label_acc_max = 0.0
@@ -928,11 +929,11 @@ def main(_):
             if 0 < iteration:
                 _random_labels_G, _labels_biased_G = next(gen_G)
                 #logging.debug('test1: {}'.format(_random_labels_G))
-                _ = session.run([gen_train_op, confuse_train_op], 
-                    feed_dict={_iteration: iteration,                            
+                _ = session.run([gen_train_op, confuse_train_op],
+                    feed_dict={_iteration: iteration,
                                all_random_labels_G: _random_labels_G,
                                all_labels_biased_G: _labels_biased_G})
-            
+
             for i in range(N_CRITIC):
                 _data, _labels, _random_labels, _labels_biased, _labels_inv_weights = next(gen)
                 _disc_cost, _disc_wgan, _gen_cost, _, summaries = session.run(
@@ -941,9 +942,9 @@ def main(_):
                                all_real_labels: _labels,
                                all_random_labels: _random_labels,
                                all_labels_biased: _labels_biased,
-                               all_labels_inv_weights: _labels_inv_weights, 
+                               all_labels_inv_weights: _labels_inv_weights,
                                all_random_labels_G: _random_labels_G,
-                               all_labels_biased_G: _labels_biased_G,                           
+                               all_labels_biased_G: _labels_biased_G,
                                _iteration: iteration})
 
             summary_writer.add_summary(summaries, global_step=iteration)
@@ -971,7 +972,7 @@ def main(_):
                 samples_for_save, _ = save_samples(10000)
                 np.save(os.path.join(DIR, '_samples_{}'.format(iteration)), samples_for_save)
                 logging.info('finished saving samples.')
-                
+
             # Calculate dev loss and generate samples every 100 iters
             if iteration % SAMPLE_FREQUENCY == SAMPLE_FREQUENCY - 1:
                 logging.info('starting calculating dev cost.')
@@ -983,7 +984,7 @@ def main(_):
                                                             all_random_labels: _random_labels,
                                                             all_labels_biased: _labels_biased,
                                                             all_labels_inv_weights: _labels_inv_weights,
-                                                           })                                                                    
+                                                           })
                     dev_disc_costs.append(_dev_disc_cost)
                 lib.plot.plot('dev_cost', np.mean(dev_disc_costs))
                 logging.info('finished calculating dev cost.')
@@ -999,7 +1000,7 @@ def main(_):
                 accuracy = generated_label_accuracy(generated_samples, generate_labels)
                 if gen_label_acc_max < accuracy:
                     gen_label_acc_max = accuracy
-                
+
                 lib.plot.plot('gen_label_acc', accuracy)
                 lib.plot.plot('gen_label_acc_max', gen_label_acc_max)
                 logging.info('finished calculating generated label accuracy.')
