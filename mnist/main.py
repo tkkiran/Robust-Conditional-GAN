@@ -96,8 +96,9 @@ def main(_):
   if not os.path.exists(FLAGS.sample_dir):
     os.makedirs(FLAGS.sample_dir)
 
-  file_list = ['main.py', 'model.py', 'utils.py', 'ops.py', 'sn.py']
-  utils.dump_script(FLAGS.checkpoint_dir, FLAGS.script_file, file_list=file_list)
+  if FLAGS.script_file:
+    file_list = ['main.py', 'model.py', 'utils.py', 'ops.py', 'sn.py']
+    utils.dump_script(FLAGS.checkpoint_dir, FLAGS.script_file, file_list=file_list)
 
   if FLAGS.logs_at_ckpt:
     FLAGS.logs_dir = FLAGS.checkpoint_dir

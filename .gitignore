@@ -12,3 +12,6 @@
 .dropbox.cache
 
 # End of https://www.gitignore.io/api/dropbox
+
+# Virtual environments
+env/

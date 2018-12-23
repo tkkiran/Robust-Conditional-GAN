@@ -44,6 +44,7 @@ flags.DEFINE_string("run", '0', "run name")
 flags.DEFINE_string("log_file", None, "logging file")
 flags.DEFINE_string("parent_dir", '.', "parent directory for checkpoints")
 flags.DEFINE_string("expt_dir", None, "directory for expts")
+flags.DEFINE_string("data_dir", DATA_DIR, "data directory")
 
 flags.DEFINE_integer("inception_freq", 2500, "frequncy of inception score calculation")
 flags.DEFINE_integer("sample_freq", 2500, "frequncy of dev cost calc. and sample pics")
@@ -165,7 +166,7 @@ ACGAN_SCALE = 1.  # How to scale the critic's ACGAN loss relative to WGAN loss
 ACGAN_SCALE_G = 0.1  # How to scale generator's ACGAN loss relative to WGAN loss
 
 # SPECTRAL_NORM_UPDATE_OPS = "spectral_norm_update_ops"
-# WORD2VEC_FILE = np.load(os.path.join(DATA_DIR, 'glove_y.npy')).astype('float32')
+# WORD2VEC_FILE = np.load(os.path.join(FLAGS.data_dir, 'glove_y.npy')).astype('float32')
 WORD2VEC_FILE = None
 VOCAB_SIZE = 10
 EMBEDDING_DIM = 300  # 620
@@ -861,7 +862,7 @@ def main(_):
             return all_samples, all_labels
             
         # Function for reading data
-        train_gen, dev_gen = dataset_.load(BATCH_SIZE, DATA_DIR, C_ALPHA)
+        train_gen, dev_gen = dataset_.load(BATCH_SIZE, FLAGS.data_dir, C_ALPHA)
         def inf_train_gen():
             while True:
                 for images_, labels_, labels_random_, labels_biased_, labels_inv_weights_ in train_gen():

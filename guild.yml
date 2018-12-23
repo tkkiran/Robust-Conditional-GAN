@@ -1,0 +1,251 @@
+####################################################################
+# MNIST
+####################################################################
+
+- config: mnist-base
+  operations:
+    train:
+      main:
+        mnist/main
+          --algorithm {{algo}}
+          --disc_type {{disc_type}}
+          --checkpoint_dir ckpts
+          --data_dir data
+          {{opts}}
+      requires:
+        - mnist-data
+        - mnist-dcnn
+      flags:
+        alpha: '{{alpha}}'
+        batch_size: 100
+        beta1: 0.5
+        epoch: 100
+        learning_rate: 0.0002
+  resources:
+    mnist-data:
+      path: data/mnist
+      sources:
+        - url: http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz
+          sha256: 440fcabf73cc546fa21475e81ea370265605f56be210a4024d2ca8f203523609
+        - url: http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz
+          sha256: 3552534a0a558bbed6aed32b30c495cca23d567ec52cac8be1a0730e8010255c
+        - url: http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz
+          sha256: 8d422c7b0a1c1c79245a5bcf07fe86e33eeafee792b84584aec276f5a2dbc4e6
+        - url: http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz
+          sha256: f7ae60f92e00ec6debd23a6088c31dbd2371eca3ffa0defaefb259924204aec6
+    mnist-dcnn:
+      sources:
+        - mnist/mnist_dcnn
+  extra:
+    scalars:
+      loss: .+/mse_loss
+      loss_step: .+/mse_loss_step
+
+- model: rcgan-mnist
+  extends: mnist-base
+  params:
+    algo: rcgan
+    disc_type: projection
+    alpha: 0.3
+    opts: >
+      --noestimate_confuse
+      --noaux_classifier
+      --noadd_noise
+      --noconcat_y
+      --spectral_norm
+      --max_norm
+
+- model: rcganu-mnist
+  extends: mnist-base
+  params:
+    algo: rcgan
+    disc_type: projection
+    alpha: 0.3
+    opts: >
+      --estimate_confuse
+      --aux_classifier
+      --noadd_noise
+      --noconcat_y
+      --spectral_norm
+      --max_norm
+
+- model: rcgany-mnist
+  extends: mnist-base
+  params:
+    algo: rcgan
+    disc_type: projection
+    alpha: 0.125
+    opts: >
+      --noestimate_confuse
+      --noaux_classifier
+      --add_noise
+      --concat_y
+      --spectral_norm
+      --max_norm
+  operations:
+    train:
+      flags:
+        concat_y_layers: 1
+        noise_alpha: 0.3
+        noise_end: 80
+        noise_start: 30
+
+- model: biased-mnist
+  extends: mnist-base
+  params:
+    algo: biased
+    disc_type: vanilla
+    alpha: 0.6
+    opts: >
+      --loss_fn ce
+      --real_match
+      --noestimate_confuse
+      --noaux_classifier
+      --noadd_noise
+      --noconcat_y
+      --nospectral_norm
+      --nomax_norm
+
+- model: unbiased-mnist
+  extends: mnist-base
+  params:
+    algo: unbiased
+    disc_type: projection
+    alpha: 0.6
+    opts: >
+      --noestimate_confuse
+      --noaux_classifier
+      --noadd_noise
+      --noconcat_y
+      --spectral_norm
+      --max_norm
+
+- model: ambient-mnist
+  extends: mnist-base
+  params:
+    algo: ambient
+    disc_type: vanilla
+    alpha: 0.6
+    opts: >
+      --loss_fn ce
+      --real_match
+      --noestimate_confuse
+      --noaux_classifier
+      --noadd_noise
+      --noconcat_y
+      --nospectral_norm
+      --nomax_norm
+
+####################################################################
+# CIFAR-10
+####################################################################
+
+- config: cifar10-base
+  params:
+    opts: ''
+  operations:
+    train:
+      main:
+        cifar10/gan_resnet
+          --dataset cifar
+          --algorithm {{algo}}
+          --log_file whatever_log_file
+          --data_dir cifar-10-batches-py
+          --multi_gpu_multi_batch
+          {{opts}}
+      requires:
+        - cifar10-data
+        - inception-graph
+        - resnet-graph
+      flags:
+        alpha: 0.6
+        batch_size: 64
+        niters: 50000
+        ngpus: 1
+        lr: 0.0002
+  resources:
+    cifar10-data:
+      sources:
+        - url: https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz
+          sha256: 6d958be074577803d12ecdefd02955f39262c83c16fe9348329d7fe0b5c001ce
+    inception-graph:
+      sources:
+        - url: http://download.tensorflow.org/models/frozen_inception_v1_2015_12_05.tar.gz
+          sha256: af16b25a0dab2a6a6896ff2dc76762295f30ae9905d6e0431a8b3085de11e5bd
+          unpack: no
+    resnet-graph:
+      sources:
+        - cifar10/resnet-110
+
+- model: rcgan-cifar10
+  extends: cifar10-base
+  params:
+    algo: rcgan
+
+- model: rcganu-cifar10
+  extends: cifar10-base
+  params:
+    algo: rcgan-u
+    opts: >
+      --perm_classifier
+      --confuse_init
+
+- model: biased-cifar10
+  extends: cifar10-base
+  params:
+    algo: biased
+
+- model: unbiased-cifar10
+  extends: cifar10-base
+  params:
+    algo: unbiased
+
+####################################################################
+# Tests
+####################################################################
+
+- test: mnist
+  steps:
+    - run: rcgan-mnist:train
+      flags:
+        epoch: 1
+      use-existing: yes
+    - run: rcganu-mnist:train
+      flags:
+        epoch: 1
+      use-existing: yes
+    - run: rcgany-mnist:train
+      flags:
+        epoch: 1
+      use-existing: yes
+    - run: biased-mnist:train
+      flags:
+        epoch: 1
+      use-existing: yes
+    - run: unbiased-mnist:train
+      flags:
+        epoch: 1
+      use-existing: yes
+    - run: ambient-mnist:train
+      flags:
+        epoch: 1
+      use-existing: yes
+
+- test: cifar10
+  steps:
+    - run: rcgan-cifar10:train
+      flags:
+        niters: 80
+      use-existing: yes
+    - run: rcganu-cifar10:train
+      flags:
+        niters: 80
+      use-existing: yes
+    - run: biased-cifar10:train
+      flags:
+        niters: 80
+      use-existing: yes
+    - run: unbiased-cifar10:train
+      flags:
+        niters: 80
+      use-existing: yes
