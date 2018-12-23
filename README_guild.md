@@ -14,15 +14,18 @@ Below is a list of commands to perform common project tasks. Refer to
 [Overview](#overview) and [Get started](#get-started) below to setup
 your environment before running these commands.
 
-| Dataset | Model | Command |
-| ------- | ----- | ------- |
-| MNIST   | RCGAN | `guild run mnist-rcgan:train` |
-| MNIST   | RCGAN-U | `guild run mnist-rcganu:train` |
-| MNIST   | RCGAN+y | `guild run mnist-rcgany:train` |
-| MNIST   | Biased GAN | `guild run mnist-biased:train` |
-| MNIST   | Unbased GAN | `guild run mnist-unbiased:train` |
-| MNIST   | Ambient GAN | `guild run mnist-ambient:train` |
-
+| Dataset  | Model        | Command |
+| -------- | ------------ | ------- |
+| MNIST    | RCGAN        | `guild run mnist-rcgan:train` |
+| MNIST    | RCGAN-U      | `guild run mnist-rcganu:train` |
+| MNIST    | RCGAN+y      | `guild run mnist-rcgany:train` |
+| MNIST    | Biased GAN   | `guild run mnist-biased:train` |
+| MNIST    | Unbased GAN  | `guild run mnist-unbiased:train` |
+| MNIST    | Ambient GAN  | `guild run mnist-ambient:train` |
+| CIFAR-10 | RCGAN        | `guild run cifar10-rcgan: train` |
+| CIFAR-10 | RCGAN-U      | `guild run cifar10-rcganu: train` |
+| CIFAR-10 | Biased GAN   | `guild run cifar10-biased: train` |
+| CIFAR-10 | Unbiased GAN | `guild run cifar10-unbiased: train` |
 
 You can set hyperparameters for any runs using `guild run OPERATION
 FLAG=VAL...` where `FLAG` is the name of the hyperparameter. To get
