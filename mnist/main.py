@@ -27,7 +27,7 @@ flags.DEFINE_string("data_dir", "../data/", "Root directory of dataset [data]")
 flags.DEFINE_string('dir_prefix', None, "dir name prefix")
 flags.DEFINE_string('logs_dir', './logs', "logs directory")
 flags.DEFINE_boolean('logs_at_ckpt', False, "set logs dir to chechkpoint dir")
-flags.DEFINE_string('script_file', None,
+flags.DEFINE_string('script_file', None, 
                     "script file name for storing script along with results")
 
 flags.DEFINE_boolean("train", False, "True for training, False for testing [False]")
@@ -44,7 +44,7 @@ flags.DEFINE_float("perm_multiplier", 10.0, "learning rate multiplier for permut
 
 flags.DEFINE_float("alpha", 1.0, "noise in labels")
 flags.DEFINE_boolean(
-  "confusion_class_depend", False,
+  "confusion_class_depend", False, 
   "whether to generate rows of confusion matrix in a class dependent way or in one coin model way")
 
 flags.DEFINE_string("disc_type", "vanilla", "type of discriminator to use [vanilla, projection]")
@@ -77,11 +77,11 @@ def main(_):
 
   if FLAGS.checkpoint is None:
     FLAGS.checkpoint_dir = os.path.join(
-      FLAGS.checkpoint_dir, FLAGS.dir_prefix + FLAGS.algorithm + "_" + str(FLAGS.alpha) + "_" + FLAGS.disc_type +
+      FLAGS.checkpoint_dir, FLAGS.dir_prefix + FLAGS.algorithm + "_" + str(FLAGS.alpha) + "_" + FLAGS.disc_type + 
       "_" + datetime.now().strftime("%Y%m%d-%H%M%S"))
   else:
     FLAGS.checkpoint_dir = os.path.join(FLAGS.checkpoint_dir, FLAGS.checkpoint)
-  FLAGS.sample_dir = os.path.join(FLAGS.checkpoint_dir, 'samples/')
+  FLAGS.sample_dir = os.path.join(FLAGS.checkpoint_dir, 'samples/') 
 
   pp.pprint(flags.FLAGS.__flags)
   FLAGS.input_height = 28
@@ -139,7 +139,7 @@ def main(_):
       if not dcgan.load(FLAGS.checkpoint_dir)[0]:
         print("[!] Training a model first, then run test mode")
         dcgan.train(FLAGS)
-
+    
     dcgan.recover_labels(FLAGS)
 
 if __name__ == '__main__':
