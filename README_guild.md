@@ -22,10 +22,10 @@ your environment before running these commands.
 | MNIST    | Biased GAN   | `guild run mnist-biased:train` |
 | MNIST    | Unbased GAN  | `guild run mnist-unbiased:train` |
 | MNIST    | Ambient GAN  | `guild run mnist-ambient:train` |
-| CIFAR-10 | RCGAN        | `guild run cifar10-rcgan: train` |
-| CIFAR-10 | RCGAN-U      | `guild run cifar10-rcganu: train` |
-| CIFAR-10 | Biased GAN   | `guild run cifar10-biased: train` |
-| CIFAR-10 | Unbiased GAN | `guild run cifar10-unbiased: train` |
+| CIFAR-10 | RCGAN        | `guild run cifar10-rcgan:train` |
+| CIFAR-10 | RCGAN-U      | `guild run cifar10-rcganu:train` |
+| CIFAR-10 | Biased GAN   | `guild run cifar10-biased:train` |
+| CIFAR-10 | Unbiased GAN | `guild run cifar10-unbiased:train` |
 
 You can set hyperparameters for any runs using `guild run OPERATION
 FLAG=VAL...` where `FLAG` is the name of the hyperparameter. To get
